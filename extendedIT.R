@@ -1,5 +1,8 @@
 
-N = 10000
+# This file requires the triangle package to simmulate triangular
+# distribution (http://cran.r-project.org/web/packages/triangle/index.html)
+
+N = 100000
 
 # initialize required global parameters
 gol = c("cost", "market.share", "market.value")
