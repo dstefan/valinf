@@ -1,39 +1,72 @@
 
-library(triangle)
+library("triangle")
 
-source("guidearch.model.R")
-source("utils.R")
-source("wmra-0.02.R")
+source("wmra-0.04.R")
+source("model.R")
 
-N = 1000 # number of simulations
-must = -1000 # a random must value beasd on my knowledge of the resulting profit range
-S = gen.solutions(c(2, 2, 2, 2, 2, 3, 2, 4, 3, 3)) # list of solutions
-Om = simulate.data("guidearch.data.csv", N) # parameters
+N = 1000
 
-profit = rep(NA, length(S))
+params = load.params("guidearch.data.labels.csv")
+rparams = realize.params(N, params)
+
+# Create function from options.
+assign.options()
+
+# Prepare extremes for each outuput for normalization in their respective functions.
+dec.extremes = normalize.params(outputs, decisions, options, dMap, rparams)
+dec.sums = lapply(dec.extremes, FUN=colSums)
+MIN = dec.sums$min;
+MAX = dec.sums$max;
+
+# Generate all solution vectors.
+S = gen.solutions(c(2, 2, 2, 2, 2, 3, 2, 4, 3, 3))
+
+# Allocate space for results.
 risk = rep(NA, length(S))
-  
-cat("\n", "Compute profit/risk for ", length(S), " solutions.", "\n\n", sep="")
+profit = rep(NA, length(S))
 
-# Compute profit and risk for all solutions.
+# Compute all profits and risks.
 for (i in 1:length(S)) {
-  s = S[[i]] # get next solution vector
-  P = Profit(s, Om) # compute profit for given solution and known params
-  profit[i] = mean(P)
-  risk[i] = (sum(P < must) / length(P)) * 100
   if (i %% 100 == 0) {
     cat(round((i / length(S)) * 100), "%", "\n")
   }
+  else {
+    cat(".")
+  }
+  profitAll = Profit(S[[i]], rparams)
+  profit[i] = mean(profitAll)
+  risk[i] = 1 - mean(profitAll > 1.75)
 }
 
-# Bind profit and risk columnts into one matrix.
-PR = cbind(profit, risk)
+res = cbind(risk, profit)
 
-# Plot solutions where risk is less than 10%.
-plot(PR[PR[,"risk"] < 10,])
+# Show solutions with risk lower than...
+plot(res[res[,1]<0.4,])
 
-# Select solution where risk is less than 10%.
-Spr = S[which(PR[,"risk"] < 10)]
+# Extract solutions having risk lower than...
+STrim = S[res[,1]<0.4]
 
-# TODO: Analysis of risks, evpi, etc. for the pruned solution space.
+# Allocate space for solution benefits
+benefit = array(dim=c(N, length(STrim)))
 
+for (i in 1:length(STrim)) {
+  benefit[,i] = Benefit(STrim[[i]], rparams)
+}
+
+
+
+ENB = colMeans(benefit)
+ENB.max = ENB[which.max(ENB)]
+
+EVPI = list()
+EVPI$overall = mean(rowMax(benefit)) - ENB.max
+
+for (i in 1:length(STrim)) {
+  EVPI[[paste("solution", i)]] = evpi(Benefit(STrim[[i]], rparams), benefit)
+}
+
+# Compute EVPI for specific outputs...
+#evpi(Battery.usage(S[[1]], rparams), benefit)
+#evpi(Reliability(S[[1]], rparams), benefit)
+
+cat("\n\nResults:\n\n"); print(EVPI)
