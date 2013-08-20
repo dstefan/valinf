@@ -1,79 +1,99 @@
+#
+# Outcomes
+#
+Ramp.up.time = function(s, p) {
+  return(
+    Loc.finding("Ramp.up.time", s, p) + HW.platform("Ramp.up.time", s, p) + File.sharing("Ramp.up.time", s, p) + Report.sync("Ramp.up.time", s, p) + Chat("Ramp.up.time", s, p) + Map.access("Ramp.up.time", s, p) + Connectivity("Ramp.up.time", s, p) + DB("Ramp.up.time", s, p) + Arch.style("Ramp.up.time", s, p) + Data.exchange("Ramp.up.time", s, p)
+  )
+}
+
+Dev.cost = function(s, p) {
+  return(
+    Loc.finding("Dev.cost", s, p) + HW.platform("Dev.cost", s, p) + File.sharing("Dev.cost", s, p) + Report.sync("Dev.cost", s, p) + Chat("Dev.cost", s, p) + Map.access("Dev.cost", s, p) + Connectivity("Dev.cost", s, p) + DB("Dev.cost", s, p) + Arch.style("Dev.cost", s, p) + Data.exchange("Dev.cost", s, p)
+  )
+}
+
+Dev.time = function(s, p) {
+  return(
+    Loc.finding("Dev.time", s, p) + HW.platform("Dev.time", s, p) + File.sharing("Dev.time", s, p) + Report.sync("Dev.time", s, p) + Chat("Dev.time", s, p) + Map.access("Dev.time", s, p) + Connectivity("Dev.time", s, p) + DB("Dev.time", s, p) + Arch.style("Dev.time", s, p) + Data.exchange("Dev.time", s, p)
+  )
+}
+
+Dep.time = function(s, p) {
+  return (
+    Loc.finding("Dep.time", s, p) + HW.platform("Dep.time", s, p) + File.sharing("Dep.time", s, p) + Report.sync("Dep.time", s, p) + Chat("Dep.time", s, p) + Map.access("Dep.time", s, p) + Connectivity("Dep.time", s, p) + DB("Dep.time", s, p) + Arch.style("Dep.time", s, p) + Data.exchange("Dep.time", s, p)
+  )
+}
+
+Battery.usage = function(s, p) {
+  return(
+    Loc.finding("Battery.usage", s, p) + HW.platform("Battery.usage", s, p) + File.sharing("Battery.usage", s, p) + Report.sync("Battery.usage", s, p) + Chat("Battery.usage", s, p) + Map.access("Battery.usage", s, p) + Connectivity("Battery.usage", s, p) + DB("Battery.usage", s, p) + Arch.style("Battery.usage", s, p) + Data.exchange("Battery.usage", s, p)
+  )
+}
+
+Resp.time = function(s, p) {
+  return(
+    Loc.finding("Resp.time", s, p) + HW.platform("Resp.time", s, p) + File.sharing("Resp.time", s, p) + Report.sync("Resp.time", s, p) + Chat("Resp.time", s, p) + Map.access("Resp.time", s, p) + Connectivity("Resp.time", s, p) + DB("Resp.time", s, p) + Arch.style("Resp.time", s, p) + Data.exchange("Resp.time", s, p)
+  )
+}
+
+Reliability = function(s, p) {
+  return(
+    100 - row.min(cbind(Loc.finding("Reliability", s, p), File.sharing("Reliability", s, p), Report.sync("Reliability", s, p), Chat("Reliability", s, p), Map.access("Reliability", s, p), Connectivity("Reliability", s, p), DB("Reliability", s, p), Arch.style("Reliability", s, p)))
+  )
+}
+
 
 #
-# Outputs
+# Goals
 #
-
-Ramp.up.time = function(s, w) {
-  SUM = Loc.finding("Ramp.up.time", s, w) + HW.platform("Ramp.up.time", s, w) + File.sharing("Ramp.up.time", s, w) + Report.sync("Ramp.up.time", s, w) + Chat("Ramp.up.time", s, w) + Map.access("Ramp.up.time", s, w) + Connectivity("Ramp.up.time", s, w) + DB("Ramp.up.time", s, w) + Arch.style("Ramp.up.time", s, w) + Data.exchange("Ramp.up.time", s, w)
-  return(
-    1 - (SUM - MIN["Ramp.up.time"]) / (MAX["Ramp.up.time"] - MIN["Ramp.up.time"])
-  )
+goal.Dep.time = function(s, p) {
+  must = 45
+  target = 30
+  dep.time = Dep.time(s, p)
+  res = (dep.time - must) / (target - must); res[res < 0] = 0; res[res > 1] = 1;
+  return ((dep.time - must) / (target - must))
 }
 
-Dev.cost = function(s, w) {
-  SUM = Loc.finding("Dev.cost", s, w) + HW.platform("Dev.cost", s, w) + File.sharing("Dev.cost", s, w) + Report.sync("Dev.cost", s, w) + Chat("Dev.cost", s, w) + Map.access("Dev.cost", s, w) + Connectivity("Dev.cost", s, w) + DB("Dev.cost", s, w) + Arch.style("Dev.cost", s, w) + Data.exchange("Dev.cost", s, w)
-  return(
-    1 - (SUM - MIN["Dev.cost"]) / (MAX["Dev.cost"] - MIN["Dev.cost"])
-  )
+goal.Battery.usage= function(s, p) {
+  must = 65
+  target = 55
+  battery.usage = Battery.usage(s, p)
+  res = (battery.usage - must) / (target - must); res[res < 0] = 0; res[res > 1] = 1;
+  return ((battery.usage - must) / (target - must))
 }
 
-Dev.time = function(s, w) {
-  SUM = Loc.finding("Dev.time", s, w) + HW.platform("Dev.time", s, w) + File.sharing("Dev.time", s, w) + Report.sync("Dev.time", s, w) + Chat("Dev.time", s, w) + Map.access("Dev.time", s, w) + Connectivity("Dev.time", s, w) + DB("Dev.time", s, w) + Arch.style("Dev.time", s, w) + Data.exchange("Dev.time", s, w)
-  return(
-    1 - (SUM - MIN["Dev.time"]) / (MAX["Dev.time"] - MIN["Dev.time"])
-  )
+goal.Resp.time = function(s, p) {
+  must = 1800
+  target = 1200
+  resp.time = Resp.time(s, p)
+  res = (resp.time - must) / (target - must); res[res < 0] = 0; res[res > 1] = 1;
+  return(res)
 }
 
-Dep.time = function(s, w) {
-  SUM = Loc.finding("Dep.time", s, w) + HW.platform("Dep.time", s, w) + File.sharing("Dep.time", s, w) + Report.sync("Dep.time", s, w) + Chat("Dep.time", s, w) + Map.access("Dep.time", s, w) + Connectivity("Dep.time", s, w) + DB("Dep.time", s, w) + Arch.style("Dep.time", s, w) + Data.exchange("Dep.time", s, w)
-  return(
-    1 - (SUM - MIN["Dep.time"]) / (MAX["Dep.time"] - MIN["Dep.time"])
-  )
-}
-
-Battery.usage = function(s, w) {
-  SUM = Loc.finding("Battery.usage", s, w) + HW.platform("Battery.usage", s, w) + File.sharing("Battery.usage", s, w) + Report.sync("Battery.usage", s, w) + Chat("Battery.usage", s, w) + Map.access("Battery.usage", s, w) + Connectivity("Battery.usage", s, w) + DB("Battery.usage", s, w) + Arch.style("Battery.usage", s, w) + Data.exchange("Battery.usage", s, w)
-  return(
-    1 - (SUM - MIN["Battery.usage"]) / (MAX["Battery.usage"] - MIN["Battery.usage"])
-  )
-}
-
-Resp.time = function(s, w) {
-  SUM = Loc.finding("Resp.time", s, w) + HW.platform("Resp.time", s, w) + File.sharing("Resp.time", s, w) + Report.sync("Resp.time", s, w) + Chat("Resp.time", s, w) + Map.access("Resp.time", s, w) + Connectivity("Resp.time", s, w) + DB("Resp.time", s, w) + Arch.style("Resp.time", s, w) + Data.exchange("Resp.time", s, w)
-  return(
-    1 - (SUM - MIN["Resp.time"]) / (MAX["Resp.time"] - MIN["Resp.time"])
-  )
-}
-
-Reliability = function(s, w) {
-  SUM = Loc.finding("Reliability", s, w) + HW.platform("Reliability", s, w) + File.sharing("Reliability", s, w) + Report.sync("Reliability", s, w) + Chat("Reliability", s, w) + Map.access("Reliability", s, w) + Connectivity("Reliability", s, w) + DB("Reliability", s, w) + Arch.style("Reliability", s, w) + Data.exchange("Reliability", s, w)
-  return(
-    (SUM - MIN["Reliability"]) / (MAX["Reliability"] - MIN["Reliability"])
-  )
+goal.Reliability = function(s, p) {
+  must = 36
+  target = 32
+  reliability = Reliability(s, p)
+  res = (reliability - must) / (target - must); res[res < 0] = 0; res[res > 1] = 1;
+  return(res)
 }
 
 #
-# Cost/Benefit model
+# Cost/utility model
 #
-
-Cost = function(s, w) {
+Cost = function(s, p) {
   return(
-    Ramp.up.time(s, w) + Dev.cost(s, w) + Dev.time(s, w)
+    15 * Ramp.up.time(s, p) + Dev.cost(s, p) + 15 * Dev.time(s, p)
   )
 }
 
-Benefit = function(s, w) {
-  return(
-    Reliability(s, w) + Dep.time(s, w) + Battery.usage(s, w) + Resp.time(s, w)
-  )
+Utility = function(s, p) {
+  return(2 * goal.Dep.time(s, p) + 9 * goal.Battery.usage(s, p) + 7 * goal.Resp.time(s, p) + 3 * goal.Reliability(s, p))
 }
 
-Profit = function(s, w) {
+Profit = function(k, s, p) {
   return(
-    Benefit(s, w) - Cost(s, w)
+    k * Utility(s, p) - Cost(s, p)
   )
 }
-
-#
-# TODO: Output must and target values?
-#

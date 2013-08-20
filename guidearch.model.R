@@ -1,4 +1,4 @@
-
+ 
 D = list(
   #
   # List of deicisons with respective alternatives
@@ -23,7 +23,7 @@ D = list(
     "On.demand", "Cached", "Preloaded"
   ),
   "Connectivity" = list(
-    "Wifi", "3G.nexus", "3g.droid", "Bluetooth"
+    "Wifi", "3G.nexus", "3G.droid", "Bluetooth"
   ),
   "DB" = list(
     "MySQL", "SQLLite"
@@ -41,7 +41,7 @@ G = list(
   # List of goals with respective evaluation functions
   #
   
-  Ramp.up.time = function(s, w) {
+  Ramp.up.time = function() {
     return(Loc.finding + HW.platform + File.sharing + Report.sync + Chat + Map.access + Connectivity + DB + Arch.style + Data.exchange)
   },
   Dev.cost = function() {
@@ -53,7 +53,7 @@ G = list(
   Dep.time = function() {
     return(Loc.finding + HW.platform + File.sharing + Report.sync + Chat + Map.access + Connectivity + DB + Arch.style + Data.exchange)
   },  
-  Battery.life = function() {
+  Battery.usage = function() {
     return(Loc.finding + HW.platform + File.sharing + Report.sync + Chat + Map.access + Connectivity + DB + Arch.style + Data.exchange)
   },
   Resp.time = function() {
@@ -79,7 +79,7 @@ Utility = function(s, w) {
   # eval function that evaluates goal for given solution s.
   #
   
-  return(g("Battery.life", s, w) + g("Reliability", s, w) - g("Resp.time", s, w))
+  return(g("Reliability", s, w) - g("Resp.time", s, w) - g("Battery.usage", s, w))
 }
 
 Profit = function(s, w) {

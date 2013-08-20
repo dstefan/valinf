@@ -136,36 +136,81 @@ gen.solutions = function(dnum) {
   return(S)
 }
 
-normalize.params = function(outputs, decisions, options, dMap, params) {
+pareto = function(I, V) {
   
-  numOutputs = length(outputs)
-  numDecis = length(decisions)
-  numOpts = length(unlist(options, use.names=FALSE))
-  dPat = rep(seq_along(dMap + 1), times=diff(c(dMap + 1, numOpts + 1)))
+  cat("Computing pareto front, please wait...\n")
   
-  L = list()
-  L$min = array(NA, dim=c(numDecis, numOutputs))
-  L$max = array(NA, dim=c(numDecis, numOutputs))
+  domin = c()
+  i = 1
   
-  colnames(L$min) = outputs
-  colnames(L$max) = outputs
-  
-  for (i in 1:numOutputs) {
-    M = params[,i,]
-    Mx = split(M, dPat)
-    L$max[,i] = unlist(lapply(Mx, FUN=max))
-    L$min[,i] = unlist(lapply(Mx, FUN=min))
+  while (i < length(I)) {
+    j = i + 1
+    while (j <= length(I)) {
+      if (all(V[,I[i]] > V[,I[j]])) {
+        domin = c(domin, I[i])
+        I = I[-i]
+        j = i + 1
+        next
+      }
+      if (all(V[,I[i]] < V[,I[j]])) {
+        domin = c(domin, I[j])
+        I = I[-j]
+        next
+      }
+      j = j + 1
+    }
+    i = i + 1
   }
   
-  return(L)
+  return(list(pfront=I, domin=domin))
 }
 
-rowMax = function(m) {
+pareto.strip = function(par, dom, V, err) {
+  
+  nonDom = TRUE
+  str = c()
+  
+  for (i in 1:length(dom)) {
+    impr = V[,dom[i]] - err
+    for (j in 1:length(par)) {
+      if (all(impr > V[,par[j]])) {
+        nonDom = FALSE
+        break
+      }
+    }
+    if (nonDom) {
+      str = c(str, dom[i])
+      
+    }
+    nonDom = TRUE
+  }
+  
+  return(str)
+}
+
+row.max = function(m) {
   apply(m, 1, max)
 }
 
-colMax = function(m) {
+row.min = function(m) {
+  apply(m, 1, min)
+}
+
+col.max = function(m) {
   apply(m, 2, max)
+}
+
+col.min = function(m) {
+  apply(m, 2, min)
+}
+
+print.status = function(pos, end) {
+  if (pos %% 100 == 0) {
+    cat(round((pos / end) * 100), "%", "\n")
+  }
+  else {
+    cat(".")
+  }
 }
 
 #############################################################################################
