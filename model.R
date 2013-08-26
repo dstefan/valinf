@@ -1,15 +1,15 @@
 #
-# Outcomes
+# Cost-related outcomes
 #
-Ramp.up.time = function(s, p) {
+Comp.cost = function(s, p) {
   return(
-    Loc.finding("Ramp.up.time", s, p) + HW.platform("Ramp.up.time", s, p) + File.sharing("Ramp.up.time", s, p) + Report.sync("Ramp.up.time", s, p) + Chat("Ramp.up.time", s, p) + Map.access("Ramp.up.time", s, p) + Connectivity("Ramp.up.time", s, p) + DB("Ramp.up.time", s, p) + Arch.style("Ramp.up.time", s, p) + Data.exchange("Ramp.up.time", s, p)
+    Loc.finding("Dev.cost", s, p) + HW.platform("Dev.cost", s, p) + File.sharing("Dev.cost", s, p) + Report.sync("Dev.cost", s, p) + Chat("Dev.cost", s, p) + Map.access("Dev.cost", s, p) + Connectivity("Dev.cost", s, p) + DB("Dev.cost", s, p) + Arch.style("Dev.cost", s, p) + Data.exchange("Dev.cost", s, p)
   )
 }
 
-Dev.cost = function(s, p) {
+Ramp.up.time = function(s, p) {
   return(
-    Loc.finding("Dev.cost", s, p) + HW.platform("Dev.cost", s, p) + File.sharing("Dev.cost", s, p) + Report.sync("Dev.cost", s, p) + Chat("Dev.cost", s, p) + Map.access("Dev.cost", s, p) + Connectivity("Dev.cost", s, p) + DB("Dev.cost", s, p) + Arch.style("Dev.cost", s, p) + Data.exchange("Dev.cost", s, p)
+    Loc.finding("Ramp.up.time", s, p) + HW.platform("Ramp.up.time", s, p) + File.sharing("Ramp.up.time", s, p) + Report.sync("Ramp.up.time", s, p) + Chat("Ramp.up.time", s, p) + Map.access("Ramp.up.time", s, p) + Connectivity("Ramp.up.time", s, p) + DB("Ramp.up.time", s, p) + Arch.style("Ramp.up.time", s, p) + Data.exchange("Ramp.up.time", s, p)
   )
 }
 
@@ -25,9 +25,32 @@ Dep.time = function(s, p) {
   )
 }
 
+Delivery.time = function(s, p) {
+  return(
+    Ramp.up.time(s, p) + Dev.time(s, p) + Dep.time(s, p)
+  )
+}
+
+Cost = function(s, p) {
+  return(
+    Comp.cost(s, p) + 10000 * Delivery.time(s, p)
+  )
+}
+
+#
+# Utility-related outcomed
+#
 Battery.usage = function(s, p) {
   return(
     Loc.finding("Battery.usage", s, p) + HW.platform("Battery.usage", s, p) + File.sharing("Battery.usage", s, p) + Report.sync("Battery.usage", s, p) + Chat("Battery.usage", s, p) + Map.access("Battery.usage", s, p) + Connectivity("Battery.usage", s, p) + DB("Battery.usage", s, p) + Arch.style("Battery.usage", s, p) + Data.exchange("Battery.usage", s, p)
+  )
+}
+
+Battery.life = function(s, p) {
+  battery.capacity = 5.18
+  battery.usage = Battery.usage(s, p)
+  return(
+    1000 * battery.capacity / (10 * battery.usage)
   )
 }
 
@@ -39,7 +62,7 @@ Resp.time = function(s, p) {
 
 Reliability = function(s, p) {
   return(
-    100 - row.min(cbind(Loc.finding("Reliability", s, p), File.sharing("Reliability", s, p), Report.sync("Reliability", s, p), Chat("Reliability", s, p), Map.access("Reliability", s, p), Connectivity("Reliability", s, p), DB("Reliability", s, p), Arch.style("Reliability", s, p)))
+    1/8 * (Loc.finding("Reliability", s, p) + File.sharing("Reliability", s, p) + Report.sync("Reliability", s, p) + Chat("Reliability", s, p) + Map.access("Reliability", s, p) + Connectivity("Reliability", s, p) + DB("Reliability", s, p) + Arch.style("Reliability", s, p))
   )
 }
 
@@ -47,53 +70,59 @@ Reliability = function(s, p) {
 #
 # Goals
 #
-goal.Dep.time = function(s, p) {
+goal.Delivery.time = function(s, p) {
   must = 45
-  target = 30
+  ideal = 30
   dep.time = Dep.time(s, p)
-  res = (dep.time - must) / (target - must); res[res < 0] = 0; res[res > 1] = 1;
-  return ((dep.time - must) / (target - must))
-}
-
-goal.Battery.usage= function(s, p) {
-  must = 65
-  target = 55
-  battery.usage = Battery.usage(s, p)
-  res = (battery.usage - must) / (target - must); res[res < 0] = 0; res[res > 1] = 1;
-  return ((battery.usage - must) / (target - must))
-}
-
-goal.Resp.time = function(s, p) {
-  must = 1800
-  target = 1200
-  resp.time = Resp.time(s, p)
-  res = (resp.time - must) / (target - must); res[res < 0] = 0; res[res > 1] = 1;
-  return(res)
-}
-
-goal.Reliability = function(s, p) {
-  must = 36
-  target = 32
-  reliability = Reliability(s, p)
-  res = (reliability - must) / (target - must); res[res < 0] = 0; res[res > 1] = 1;
-  return(res)
-}
-
-#
-# Cost/utility model
-#
-Cost = function(s, p) {
+  res = (dep.time - must) / (ideal - must); res[res < 0] = 0; res[res > 1] = 1;
   return(
-    15 * Ramp.up.time(s, p) + Dev.cost(s, p) + 15 * Dev.time(s, p)
+    list(sat=res, fail=mean(dep.time>must))
   )
 }
 
-Utility = function(s, p) {
-  return(2 * goal.Dep.time(s, p) + 9 * goal.Battery.usage(s, p) + 7 * goal.Resp.time(s, p) + 3 * goal.Reliability(s, p))
+goal.Battery.life = function(s, p) {
+  must = 10
+  ideal = 13
+  battery.life = Battery.life(s, p)
+  res = (battery.life - must) / (ideal - must); res[res < 0] = 0; res[res > 1] = 1;
+  return (
+    list(sat=res, fail=mean(battery.life<must))
+  )
 }
 
-Profit = function(k, s, p) {
+goal.Resp.time = function(s, p) {
+  must = 2000
+  ideal = 500
+  resp.time = Resp.time(s, p)
+  res = (resp.time - must) / (ideal - must); res[res < 0] = 0; res[res > 1] = 1;
   return(
-    k * Utility(s, p) - Cost(s, p)
+    list(sat=res, fail=mean(resp.time>must))
+  )
+}
+
+goal.Reliability = function(s, p) {
+  must = 85
+  ideal = 99.9
+  reliability = Reliability(s, p)
+  res = (reliability - must) / (ideal - must); res[res < 0] = 0; res[res > 1] = 1;
+  return(
+    list(sat=res, fail=mean(reliability<must))
+  )
+}
+
+Efficiency = function(s, p) {
+  # Maximize battery life and reliability and minimize response time.
+  return(9 * goal.Battery.life(s, p)$sat + 7 * (1 - goal.Resp.time(s, p)$sat) + 3 * goal.Reliability(s, p)$sat)
+}
+
+Benefit = function(k, s, p) {
+  return(
+    k * Efficiency(s, p) - Cost(s, p)
+  )
+}
+
+Failure.risk = function(s, p) {
+  return(
+    1 - (1-goal.Battery.life(s, p)$fail) * (1-goal.Resp.time(s, p)$fail) * (1-goal.Reliability(s, p)$fail)
   )
 }
