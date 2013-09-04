@@ -606,10 +606,12 @@ brppi <- function(param, nbs, must,...) {
       Sum.of.loss.with.perfect.info = Sum.of.loss.with.perfect.info + Sum.of.loss.for.best.in.segment 
     }
     # generating the results
+    cat(Nbr.of.failure.with.perfect.info)
     return(list(
       NB = Sum.NB.with.perfect.info / n,
       risk = Nbr.of.failure.with.perfect.info / n,
       plm = -1 * Sum.of.loss.with.perfect.info / Nbr.of.failure.with.perfect.info,
+      #plm = -1 * Sum.of.loss.with.perfect.info / colSums(fail),
       segPoints=param[segPoints2[-c(1,length(segPoints2))]]
     ))
   }
